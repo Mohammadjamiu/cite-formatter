@@ -17,13 +17,7 @@
 
 import type { Citation, FormatStrategy, InTextContext, ReferenceContext } from '../types.js';
 import { byFirstSurname, extractSurname, isCommaForm, toSurnameFirst } from '../utils/authors.js';
-import { doiUrl, effectiveYear, formatPageRange } from '../utils/placeholders.js';
-
-function chicagoAuthorList(citation: Citation): string {
-  const authors = citation.authors ?? [];
-  if (authors.length === 0) return 'Anonymous';
-  return authors.map(toSurnameFirst).join(authors.length === 2 ? ' and ' : authors.length > 2 ? ', and ' : '');
-}
+import { effectiveYear, formatPageRange } from '../utils/placeholders.js';
 
 function chicagoFirstAuthorLastFirst(citation: Citation): string {
   const first = citation.authors?.[0];

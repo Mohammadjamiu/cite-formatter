@@ -16,7 +16,7 @@
  */
 
 import type { Citation, FormatStrategy, InTextContext, ReferenceContext } from '../types.js';
-import { extractSurname, isCommaForm, toInitialsFirst } from '../utils/authors.js';
+import { isCommaForm, toInitialsFirst } from '../utils/authors.js';
 import { doiUrl, effectiveYear, formatPageRange } from '../utils/placeholders.js';
 
 function vancouverAuthorList(citation: Citation): string {

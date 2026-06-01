@@ -71,7 +71,7 @@ function mlaReference(citation: Citation, _ctx: ReferenceContext): string {
     parts.push(` ${year}.`);
   }
 
-  return parts.join('').replace(/\.\./g, '.').replace(/\, \./g, '. ');
+  return parts.join('').replace(/\.\./g, '.').replace(/, \./g, '. ');
 }
 
 export const mlaStrategy: FormatStrategy = {

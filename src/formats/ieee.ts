@@ -9,8 +9,10 @@
  * - Quoted article titles, journal names in italics (rendered as `*...*` in markdown)
  * - Numbered in order of first appearance
  * - **Continuous numbering across calls** via the `numberMap` option
- *   on {@link compileCitations} — this is the headline feature and
- *   the one that took months to get right in the original codebase.
+ *   on {@link compileCitations}. The caller threads the `numberMap`
+ *   between calls; `compileCitations` carries no hidden state of its
+ *   own. This is the headline feature: the same `[1]` refers to the
+ *   same paper across chapters, sections, or even documents.
  *
  * @example In-text output
  *   "A [1] and B [2] and A again [1]."
@@ -20,7 +22,7 @@
  */
 
 import type { Citation, FormatStrategy, InTextContext, ReferenceContext } from '../types.js';
-import { extractSurname, isCommaForm, toInitialsFirst } from '../utils/authors.js';
+import { isCommaForm, toInitialsFirst } from '../utils/authors.js';
 import { doiUrl, effectiveYear, formatPageRange } from '../utils/placeholders.js';
 
 function ieeeAuthorList(citation: Citation): string {

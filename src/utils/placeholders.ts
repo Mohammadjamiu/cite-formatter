@@ -20,7 +20,7 @@ import type { Citation } from '../types.js';
  * }
  * ```
  */
-export const CITE_PLACEHOLDER = /\[CITE:([A-Za-z0-9._:\-]+)\]/g;
+export const CITE_PLACEHOLDER = /\[CITE:([A-Za-z0-9._:-]+)\]/g;
 
 /**
  * Extract every citation id referenced in `content`, in first-appearance order.
