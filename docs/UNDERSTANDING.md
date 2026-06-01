@@ -17,7 +17,7 @@
 3. [The end-to-end flow](#the-end-to-end-flow)
 4. [Repository tour](#repository-tour)
 5. [Architecture decisions and tradeoffs](#architecture-decisions-and-tradeoffs)
-6. [What was extracted from where](#what-was-extracted-from-where)
+6. [Design decisions](#design-decisions)
 7. [Extending the package](#extending-the-package)
 8. [FAQ](#faq)
 9. [What this package is *not*](#what-this-package-is-not)
@@ -89,7 +89,7 @@ of LLMs — it doesn't care how the `[CITE:id]` tokens got there.
 
 ## The end-to-end flow
 
-This is what happens in a real integration. It uses the FYP
+This is what happens in a real integration. It uses an essay
 generator as a worked example, but the same flow applies to any
 app — essay generator, RAG chat, blog writer, research
 assistant, citation manager, etc.
@@ -285,10 +285,11 @@ compile a chapter in two halves (e.g. for streaming output), you
 hand the `numberMap` from the first half into the second.
 
 **Why:** IEEE requires continuous numbering across the entire
-document, not per-section. The original FYP generator had a
-months-long bug where `[4]` in chapter 2 referred to a different
-paper than `[4]` in chapter 1 — because the number map reset on
-every call. Fixing it required plumbing state.
+document, not per-section. Many early citation libraries had
+a silent bug here: `[4]` in chapter 2 referred to a different
+paper than `[4]` in chapter 1, because the number map reset
+on every call. The numbers looked right; they just referred
+to the wrong papers. Fixing it requires plumbing state.
 
 **Tradeoff:** callers have to remember to pass the numberMap. If
 they forget, numbering restarts. There's no way to enforce this
@@ -390,36 +391,71 @@ fails on the old code and passes on the new.
 
 ---
 
-## What was extracted from where
+## Design decisions
 
-This package was extracted from a larger project
-(`nigerian_fyp_generator`). The original file was
-`lib/citations/compiler.ts` — about 150 lines that did APA and
-IEEE. Here is what changed during extraction and why.
+These are the non-obvious calls made during development, with
+the reasoning. If you disagree with one, this is where you'd
+start a discussion before opening a PR.
 
-| Original | Now | Why |
-|----------|-----|-----|
-| Only APA + IEEE | + 4 more formats | Coverage. The original only needed APA and IEEE for Nigerian university reports; the package is for everyone. |
-| In-text + reference as a single function | Split into `inText` and `reference` per format | Each format's in-text rules differ from its reference rules. Splitting lets you write a custom format that overrides one but not the other. |
-| `preBuiltNumberMap` parameter | Renamed to `numberMap` | `preBuiltNumberMap` is the name from inside the FYP generator. As a public API, `numberMap` is clearer. |
-| Authors not normalised on import | `toSurnameFirst`, `toInitialsFirst`, `extractSurname` utilities | The original assumed the input was always in `"Smith, J."` form. Real-world data has both forms; the utilities handle both. |
-| DOI not rendered as a link | DOI rendered as `https://doi.org/...` | Most style guides now require the clickable link form. |
-| `et al.` at 6+ in APA | `et al.` at 3+ in APA | APA 7 (2019) changed this rule. The original used the APA 6 rule. |
-| 7+ authors truncated | 21+ authors use the explicit 19 + ellipsis + last rule | APA 7 introduced a specific truncation rule for ≥21 authors. |
-| `onMissing` not configurable | `onMissing: 'keep' \| 'remove' \| 'throw'` | The original would silently emit `[CITE:unknown]` for any missing id. Users need to be able to opt into a strict mode. |
-| No `page` suffix | `page` option on `compileCitations` | The original had no way to inject page numbers like `(Smith, 2020, p. 12)`. The format strategies now support it. |
-| No `registerFormat` | `registerFormat`, `unregisterFormat`, `getFormat`, `listFormats` | The original had no extensibility story. Now you can add a custom house style. |
-| No tests | 45 vitest tests, all passing | The original was tested by running the production app. Not great. |
-| `md` to single file `compiler.ts` | Split into `formats/{apa,ieee,…}.ts` | Each format is now self-contained, ~50–100 lines, easy to read and modify. |
-| No CLI | `bin/cli.js` | The CLI is a useful distribution channel — people who don't use Node can still get value. |
-| TS source, no build step | Built ESM + CJS + `.d.ts` via tsup | npm consumers want both formats; tsup produces both with one config. |
-| No `BibTeX` export | `toBibtex()` | The original generated Word documents, not BibTeX. A standalone BibTeX export was an easy add. |
+### 1. Strategy-object formats, not string templates
 
-The architecture intent: the original code is now a thin
-*user* of this package. The FYP generator's `compiler.ts` was
-deleted and replaced with `import { compileCitations } from
-'cite-formatter'`. If you maintain that project, the migration
-is a one-line import change.
+Each format is a `{ inText, reference }` object, not a
+`format(apa, citation) => string` function. The split matters:
+in-text and reference rules differ. APA uses initials in-text
+but full names in references; MLA 9 omits year in-text but
+includes it in references. Splitting lets custom format
+authors override one without touching the other.
+
+### 2. `numberMap` is a parameter, not internal state
+
+`compileCitations` does not maintain hidden state. If you call
+it twice (chapter 1, then chapter 2), you pass the `numberMap`
+from the first call as input to the second. The tradeoff:
+callers have to remember to pass it. If they forget, numbering
+restarts. The alternative — internal state per package
+instance — makes the function non-pure, breaks parallel
+calls, and complicates testing.
+
+### 3. Six built-in formats, not "all of them"
+
+APA 7, IEEE, Chicago Author-Date, MLA 9, Vancouver, Harvard.
+No AMA, no Nature, no ACS, no Australian Harvard, no
+individual journal styles. Custom formats via `registerFormat()`
+cover the long tail. Adding a built-in format is a deliberate
+choice, not a default.
+
+### 4. Zero runtime dependencies
+
+`devDependencies` is long (`tsup`, `vitest`, `eslint`, ...);
+`dependencies` is empty. A library this small has no excuse
+to ship runtime weight. Every feature is implemented in
+`src/utils/` and `src/formats/` directly. If you find a use
+case that needs an external dep, the answer is "open an issue
+and we'll discuss."
+
+### 5. Dual ESM + CJS + `.d.ts` via tsup
+
+Modern Node supports ESM natively. Legacy Node tooling still
+wants CJS. Some users want JSDoc-driven `.d.ts`, others want
+generated ones. tsup produces all three with one config in
+under 2 seconds. The `exports` field in `package.json` does
+the resolution.
+
+### 6. CLI ships in the same package
+
+`bin/cli.js` lets non-Node users get value: a writer using
+Pandoc can pipe
+`npx cite-formatter draft.md refs.json > draft.with-cites.md`
+and feed the result to Pandoc. The CLI is the second-most-
+common way people discover the library (the first is reading
+a blog post about it).
+
+### 7. The placeholder syntax is `[CITE:id]`, not configurable
+
+The whole point of the package is that LLMs reliably emit
+`[CITE:smith2020]`. If you let users change the syntax, you
+fragment the prompt templates and the LLM training data. One
+fixed format. Document it once.
 
 ---
 
@@ -567,8 +603,8 @@ It's important to be clear about scope, both for users and for
 contributors.
 
 - **It's not a citation fetcher.** It doesn't search Crossref,
-  OpenAlex, or arXiv. Use a different package (or the FYP
-  generator's `lib/citations/` module) for that.
+  OpenAlex, or arXiv. Use a separate package for that
+  (e.g. `citation-js`, or your own research pipeline).
 
 - **It's not a citation parser.** It doesn't read BibTeX, RIS,
   or EndNote files. If you have a `.bib` file, parse it with
@@ -583,8 +619,8 @@ contributors.
   essay. It only formats the citations the LLM (or you) emit.
 
 - **It's not a layout engine.** It produces text, not DOCX or
-  PDF. For Word output, use the FYP generator's `lib/export/docx.ts`
-  which consumes `compileCitations` output.
+  PDF. For Word output, use `docx` or `pdfkit` downstream of
+  `compileCitations`.
 
 If a user asks you "can this package do X?", check the list
 above. If X is not on the list, the answer is "this package can

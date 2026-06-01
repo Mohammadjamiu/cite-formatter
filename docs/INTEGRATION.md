@@ -310,8 +310,9 @@ This is a starting point. Production code needs:
 - Rate-limit handling (Crossref's polite pool needs `mailto=` in the URL)
 - Deduplication (same paper in two sources)
 
-The FYP generator's `lib/citations/` has a production implementation
-of all of this. You're welcome to copy it.
+A production implementation of this pipeline exists in several
+real-world essay generators. The pattern is the same; only the
+fetching strategy (OpenAlex-only vs. Crossref+arXiv) differs.
 
 ---
 

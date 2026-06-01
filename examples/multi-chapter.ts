@@ -1,6 +1,7 @@
 /**
  * Multi-chapter IEEE — number citations continuously across chapters.
- * This is the bug the FYP generator fixed (per its AGENTS.md changelog).
+ * This is the bug the numberMap parameter exists to solve:
+ * per-chapter numbering would silently restart [1] in each chapter.
  */
 import { compileCitations, type Citation } from 'cite-formatter';
 

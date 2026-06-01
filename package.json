@@ -60,6 +60,15 @@
     "placeholder"
   ],
   "license": "MIT",
+  "author": "Mohammad-Jamiu Balogun <balogunmohammedjamiu@gmail.com>",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/Mohammadjamiu/cite-formatter.git"
+  },
+  "bugs": {
+    "url": "https://github.com/Mohammadjamiu/cite-formatter/issues"
+  },
+  "homepage": "https://github.com/Mohammadjamiu/cite-formatter#readme",
   "engines": {
     "node": ">=18"
   },

@@ -6,6 +6,8 @@ project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ## [Unreleased]
 
+## [0.1.0] - 2026-06-01
+
 ### Added
 - 6 built-in formats: APA 7, IEEE, Chicago (Author-Date), MLA 9, Vancouver, Harvard
 - `compileCitations()` with `numberMap` for continuous IEEE/Vancouver numbering
@@ -15,7 +17,5 @@ project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 - Author-name utilities: `extractSurname`, `toSurnameFirst`, `toInitialsFirst`, `getSurnames`, `byFirstSurname`
 - Dual ESM + CJS build with full TypeScript types
 - Vitest test suite covering all formats + edge cases
-
-### Notes
-- Extracted and improved from `nigerian_fyp_generator/lib/citations/compiler.ts`.
-- The original module is MIT-compatible; this package is a clean re-implementation, not a copy.
+- Documentation: `docs/UNDERSTANDING.md`, `docs/INTEGRATION.md`, `docs/FORMATS.md`
+- Examples: basic, multi-chapter, custom format, BibTeX export

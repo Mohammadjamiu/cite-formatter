@@ -1,5 +1,10 @@
 # cite-formatter
 
+[![npm version](https://img.shields.io/npm/v/cite-formatter.svg)](https://www.npmjs.com/package/cite-formatter)
+[![npm downloads](https://img.shields.io/npm/dm/cite-formatter.svg)](https://www.npmjs.com/package/cite-formatter)
+[![CI](https://github.com/Mohammadjamiu/cite-formatter/actions/workflows/ci.yml/badge.svg)](https://github.com/Mohammadjamiu/cite-formatter/actions)
+[![License: MIT](https://img.shields.io/npm/l/cite-formatter.svg)](https://github.com/Mohammadjamiu/cite-formatter/blob/main/LICENSE)
+
 > Compile `[CITE:id]` placeholders to APA, IEEE, Chicago, MLA, Vancouver, or Harvard. Continuous numbering across chapters. Zero dependencies.
 
 ```ts
@@ -253,16 +258,30 @@ interface Citation {
 
 ## Why this exists
 
-I extracted and improved this from a real production codebase (a Nigerian FYP generator that produces 5,000+ citation compilations a month). The original code had two bugs that took months to find:
+If you're building an AI writing tool, your model needs to cite
+sources. But LLMs **hallucinate** when asked to produce a full
+APA reference from scratch — they invent authors, misremember
+years, mangle journal names. Even when you ask for `(Author, Year)`
+in the prompt, the output is uneven across calls. Numbered
+formats like IEEE and Vancouver are especially fragile: chapter
+2's `[1]` is almost never the same paper as chapter 1's `[1]`.
 
-1. **Per-chapter IEEE numbering restart** — `[1]` in chapter 1 would refer to a different paper than `[1]` in chapter 2
-2. **`et al.` applied at 6+ authors in APA** — should be 3+ (APA 7 changed this in 2019)
+`cite-formatter` is built around a separation that works:
 
-Both are fixed here by:
-- A `preBuiltNumberMap` parameter (renamed to `numberMap` for clarity) that the caller threads between calls
-- Per-format strategy objects with explicit author-count rules
+1. **You** collect citations (from a research pipeline, a
+   database, or a user's library).
+2. The **LLM** emits `[CITE:id]` placeholders. Models are very
+   good at this — it's a simple token to copy from the prompt.
+3. **`compileCitations()`** expands each placeholder
+   deterministically. No LLM is involved at this step. The
+   output is reproducible.
 
-If you find other edge cases, open an issue — every fix here is a fix that didn't have to be debugged in your app.
+The killer feature is **continuous numbering across multiple
+calls**. You thread a `numberMap` between chapters, and `[4]`
+in chapter 2 refers to the same paper as `[4]` in chapter 1.
+No state machine on your end.
+
+If you find other edge cases, open an issue.
 
 ## Benchmarks
 
