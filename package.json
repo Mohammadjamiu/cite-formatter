@@ -1,0 +1,76 @@
+{
+  "name": "cite-formatter",
+  "version": "0.1.0",
+  "description": "Compile [CITE:id] placeholders to APA, IEEE, Chicago, MLA, Vancouver, or Harvard. Global numbering across calls. Zero dependencies.",
+  "type": "module",
+  "main": "./dist/index.cjs",
+  "module": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "import": "./dist/index.js",
+      "require": "./dist/index.cjs"
+    },
+    "./formats": {
+      "types": "./dist/formats/index.d.ts",
+      "import": "./dist/formats/index.js",
+      "require": "./dist/formats/index.cjs"
+    },
+    "./bibtex": {
+      "types": "./dist/bibtex.d.ts",
+      "import": "./dist/bibtex.js",
+      "require": "./dist/bibtex.cjs"
+    }
+  },
+  "bin": {
+    "cite-formatter": "./bin/cli.js"
+  },
+  "files": [
+    "dist",
+    "bin",
+    "README.md",
+    "LICENSE",
+    "CHANGELOG.md"
+  ],
+  "scripts": {
+    "build": "tsup",
+    "test": "vitest run",
+    "test:watch": "vitest",
+    "typecheck": "tsc --noEmit",
+    "lint": "eslint src tests",
+    "format": "prettier --write \"src/**/*.ts\" \"tests/**/*.ts\"",
+    "prepublishOnly": "npm run build && npm test"
+  },
+  "keywords": [
+    "citation",
+    "bibliography",
+    "apa",
+    "ieee",
+    "chicago",
+    "mla",
+    "vancouver",
+    "harvard",
+    "references",
+    "bibtex",
+    "academic",
+    "research",
+    "ai-writing",
+    "rag",
+    "placeholder"
+  ],
+  "license": "MIT",
+  "engines": {
+    "node": ">=18"
+  },
+  "devDependencies": {
+    "@types/node": "^20.11.0",
+    "@typescript-eslint/eslint-plugin": "^7.18.0",
+    "@typescript-eslint/parser": "^7.18.0",
+    "eslint": "^8.57.0",
+    "prettier": "^3.2.5",
+    "tsup": "^8.0.2",
+    "typescript": "^5.4.5",
+    "vitest": "^1.6.0"
+  }
+}

@@ -1,0 +1,27 @@
+[
+  {
+    "id": "a",
+    "authors": ["Smith, J. Q."],
+    "year": 2020,
+    "title": "A paper",
+    "journal": "Journal of Things",
+    "volume": "5",
+    "pages": "10-20"
+  },
+  {
+    "id": "b",
+    "authors": ["Jones, A."],
+    "year": 2021,
+    "title": "B paper",
+    "journal": "Other Journal",
+    "volume": "1",
+    "pages": "1-9"
+  },
+  {
+    "id": "c",
+    "authors": ["Doe, R."],
+    "year": 2019,
+    "title": "C paper",
+    "journal": "Old Journal"
+  }
+]
