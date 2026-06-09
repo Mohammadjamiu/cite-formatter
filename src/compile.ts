@@ -21,6 +21,7 @@ import type {
 import { resolveFormat } from './formats/index.js';
 import { buildCitationMap, CITE_PLACEHOLDER, citationKey } from './utils/placeholders.js';
 import { getSurnames } from './utils/authors.js';
+import { mergeAdjacentCitations } from './utils/merge-adjacent.js';
 
 export function compileCitations(options: CompileOptions): CompileResult {
   const {
@@ -30,6 +31,7 @@ export function compileCitations(options: CompileOptions): CompileResult {
     numberMap: inputNumberMap,
     onMissing = 'keep',
     page,
+    groupAdjacent = true,
   } = options;
 
   const strategy = resolveFormat(format);
@@ -73,7 +75,7 @@ export function compileCitations(options: CompileOptions): CompileResult {
   }
 
   // 3. Replace placeholders in the content
-  const compiledContent = content.replace(CITE_PLACEHOLDER, (match, id: string) => {
+  let compiledContent = content.replace(CITE_PLACEHOLDER, (match, id: string) => {
     const citation = citationMap.get(id);
     if (!citation) {
       if (onMissing === 'remove') return '';
@@ -86,6 +88,10 @@ export function compileCitations(options: CompileOptions): CompileResult {
     };
     return strategy.inText(citation, ctx);
   });
+
+  if (groupAdjacent) {
+    compiledContent = mergeAdjacentCitations(compiledContent, strategy);
+  }
 
   // 4. Build the reference list
   const usedCitations: Citation[] = [];

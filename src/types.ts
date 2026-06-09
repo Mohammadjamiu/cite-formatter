@@ -157,4 +157,10 @@ export interface CompileOptions {
    * Only certain formats honour this (APA, Chicago, Harvard).
    */
   page?: string;
+  /**
+   * Merge adjacent in-text citations into one group after compilation.
+   * APA: semicolon-separated; IEEE: comma / en-dash ranges; Vancouver: same in parentheses.
+   * @default true
+   */
+  groupAdjacent?: boolean;
 }

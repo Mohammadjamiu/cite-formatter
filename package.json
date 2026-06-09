@@ -1,6 +1,6 @@
 {
   "name": "cite-formatter",
-  "version": "0.1.0",
+  "version": "0.2.0",
   "description": "Compile [CITE:id] placeholders to APA, IEEE, Chicago, MLA, Vancouver, or Harvard. Global numbering across calls. Zero dependencies.",
   "type": "module",
   "main": "./dist/index.cjs",

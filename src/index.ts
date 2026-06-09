@@ -63,6 +63,7 @@
  */
 
 export { compileCitations } from './compile.js';
+export { mergeAdjacentCitations } from './utils/merge-adjacent.js';
 export { toBibtex } from './bibtex.js';
 export {
   registerFormat,

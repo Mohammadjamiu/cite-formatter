@@ -6,6 +6,15 @@ project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ## [Unreleased]
 
+## [0.2.0] - 2026-06-09
+
+### Added
+- Automatic merging of adjacent in-text citations after compilation (enabled by default via `groupAdjacent`)
+- APA / Harvard / Chicago: `(A, 2020)(B, 2021)` → `(A, 2020; B, 2021)`
+- IEEE: `[1][2]` → `[1, 2]`, `[5][4]` → `[4, 5]`, `[1][2][3]` → `[1]–[3]`, with deduplication
+- Vancouver: `(1)(2)` → `(1, 2)` with the same range rules in parentheses
+- Exported `mergeAdjacentCitations()` for standalone post-processing
+
 ## [0.1.0] - 2026-06-01
 
 ### Added
