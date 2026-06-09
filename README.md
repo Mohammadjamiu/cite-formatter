@@ -65,6 +65,7 @@ If you're building an AI writing tool — essay generator, RAG chat, research as
 ## Features
 
 - **6 built-in formats**: APA 7, IEEE, Chicago (Author-Date), MLA 9, Vancouver, Harvard
+- **Adjacent citation merging** — `[CITE:a][CITE:b]` becomes `(A, 2020; B, 2021)` or `[1, 2]` automatically (v0.2.0+)
 - **Continuous numbering** for IEEE / Vancouver across chapters or sections via `numberMap`
 - **Custom format registration** — add your own house style at runtime
 - **BibTeX export** — feed into pandoc / JabRef / Zotero
@@ -106,6 +107,28 @@ const r = compileCitations({
 // r.content    === 'It has been shown (Smith, 2020) that Y, and this is widely accepted (Jones & Brown, 2021).'
 // r.references === ['Jones, A., & Brown, B. (2021). A meta-review. *Annual Reviews*.', 'Smith, J. Q. (2020). A study. *Journal of X*.']
 ```
+
+### Adjacent citations (multiple sources, same sentence)
+
+Tell the model to chain placeholders — one id per bracket:
+
+```ts
+const r = compileCitations({
+  content: 'Risks are documented [CITE:smith2020][CITE:jones2021].',
+  citations: [smith, jones],
+  format: 'apa',
+});
+// r.content === 'Risks are documented (Smith, 2020; Jones, 2021).'
+
+const ieee = compileCitations({
+  content: 'See also [CITE:b][CITE:a][CITE:c].', // order in text may vary
+  citations: [a, b, c],
+  format: 'ieee',
+});
+// ieee.content === 'See also [1]–[3].'   // sorted, consecutive → en-dash range
+```
+
+Merging runs automatically after compile (`groupAdjacent: true` by default). Disable with `groupAdjacent: false` if you need raw per-placeholder output. You can also call `mergeAdjacentCitations()` directly on already-compiled text.
 
 ### IEEE with continuous numbering across chapters
 
@@ -216,6 +239,7 @@ interface CompileOptions {
   numberMap?: Map<string, number>; // from a previous call (for continuous IEEE numbering)
   onMissing?: 'keep' | 'remove' | 'throw';  // default: 'keep'
   page?: string;                // optional page suffix
+  groupAdjacent?: boolean;      // merge [CITE:a][CITE:b] groups; default: true
 }
 
 interface CompileResult {
@@ -226,6 +250,8 @@ interface CompileResult {
   missingIds: string[];         // ids referenced but not provided
 }
 ```
+
+Also exported: **`mergeAdjacentCitations(text, format)`** — standalone post-processor if you compile in multiple passes and still need grouping.
 
 ### `Citation`
 

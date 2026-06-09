@@ -6,6 +6,9 @@ project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ## [Unreleased]
 
+### Changed
+- README and docs updated for adjacent citation merging (`groupAdjacent`, `mergeAdjacentCitations`)
+
 ## [0.2.0] - 2026-06-09
 
 ### Added

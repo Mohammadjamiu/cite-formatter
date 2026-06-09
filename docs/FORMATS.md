@@ -72,6 +72,10 @@ Smith, J. Q. (2020). A study of things. *Journal of Studies*, *12*(3), 34–56. 
 - ✓ `et al.` at 3+ in-text, full list in reference
 - ✓ Title case for journal, sentence case for article title (we
   do not auto-convert; trust the input)
+- ✓ Adjacent parentheticals merged: `(Smith, 2020)(Jones, 2021)`
+  → `(Smith, 2020; Jones, 2021)` when placeholders are chained
+  (`[CITE:smith][CITE:jones]`). Enabled by default via
+  `groupAdjacent` (v0.2.0+).
 
 ### Not handled (limitations)
 
@@ -151,6 +155,9 @@ ch2's reference list because B wasn't cited in ch2.
 - ✓ `et al.` at 7+ authors in the reference list
 - ✓ DOI without the URL prefix
 - ✓ Page range en-dash
+- ✓ Adjacent brackets merged and sorted: `[5][4]` → `[4, 5]`;
+  `[1][2][3]` → `[1]–[3]`; `[1][1]` → `[1]`. Chained placeholders
+  (`[CITE:a][CITE:b]`) are the intended input shape.
 
 ### Not handled
 
@@ -289,6 +296,8 @@ First 6 authors, then `et al.`
 - ✓ NLM-style punctuation (`. ` between fields, `;` before volume)
 - ✓ DOI without URL prefix
 - ✓ `et al.` for 7+ authors
+- ✓ Adjacent parenthetical numbers merged: `(1)(2)` → `(1, 2)`;
+  three consecutive → `(1–3)` (same rules as IEEE, in parentheses)
 
 ### Not handled
 

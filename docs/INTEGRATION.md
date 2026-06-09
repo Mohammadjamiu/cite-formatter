@@ -104,6 +104,8 @@ ${citations.map(c => `[CITE:${c.id}] ${c.authors[0]} (${c.year}) — ${c.title}`
 
 RULES:
 - Use [CITE:id] wherever a claim needs support. Use only the ids above.
+- One id per bracket. For multiple sources at the same point, chain them:
+  [CITE:smith2020][CITE:jones2021] (not [CITE:smith2020, jones2021]).
 - Do not invent new ids.
 - Do not write full citations like "(Smith, 2020)" — use the placeholder.
 - Output the essay as plain markdown.
@@ -128,6 +130,14 @@ The key insight: step 3 puts the citation list *in the prompt*,
 tells the model to use `[CITE:id]` placeholders, and forbids full
 citations. This is the prompt engineering that makes everything
 work.
+
+**Adjacent placeholders:** when the model emits
+`[CITE:smith2020][CITE:jones2021]` at the same point in a sentence,
+`compileCitations()` merges them into the correct combined form —
+`(Smith, 2020; Jones, 2021)` in APA, `[1, 2]` in IEEE, etc. You do
+not need a separate regex pass. This is on by default (`groupAdjacent:
+true`); set `groupAdjacent: false` to keep raw `(A)(B)` / `[1][2]`
+output.
 
 ---
 

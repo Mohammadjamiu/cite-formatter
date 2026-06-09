@@ -81,9 +81,11 @@ database, a user's Zotero library, etc.). You give the LLM that
 list and ask it to emit `[CITE:id]` placeholders in its output.
 After the LLM responds, you run the text through
 `cite-formatter`, which replaces each placeholder with the
-correct in-text citation for the format the user wants, and
-emits a formatted reference list. The library has no knowledge
-of LLMs — it doesn't care how the `[CITE:id]` tokens got there.
+correct in-text citation for the format the user wants, merges
+adjacent citation groups into one parenthetical or bracket group
+(e.g. `(A, 2020)(B, 2021)` → `(A, 2020; B, 2021)`), and emits a
+formatted reference list. The library has no knowledge of LLMs —
+it doesn't care how the `[CITE:id]` tokens got there.
 
 ---
 
@@ -177,7 +179,8 @@ cite-formatter/
 │   ├── index.ts                  public API barrel — what users import
 │   ├── compile.ts                THE main function. Walks the content,
 │   │                             resolves ids, replaces placeholders,
-│   │                             builds the reference list.
+│   │                             merges adjacent groups, builds the
+│   │                             reference list.
 │   ├── types.ts                  Citation, FormatStrategy, CompileOptions,
 │   │                             CompileResult, InTextContext,
 │   │                             ReferenceContext. The shape of the API.
@@ -203,15 +206,19 @@ cite-formatter/
 │       │                         to build in-text citations and to
 │       │                         sort the reference list. Exported
 │       │                         so custom format authors can use them.
-│       └── placeholders.ts       The [CITE:id] regex, citation key
-│                                 resolution, DOI URL building, page
-│                                 range normalisation. Also has
-│                                 CITE_PLACEHOLDER exported for users
-│                                 who want to count citations pre-flight.
+│       ├── placeholders.ts       The [CITE:id] regex, citation key
+│       │                         resolution, DOI URL building, page
+│       │                         range normalisation. Also has
+│       │                         CITE_PLACEHOLDER exported for users
+│       │                         who want to count citations pre-flight.
+│       └── merge-adjacent.ts     Post-compile pass that collapses
+│                                 adjacent in-text citations (APA
+│                                 semicolons, IEEE comma/ranges).
 ├── tests/
 │   ├── apa.test.ts               APA-specific assertions.
 │   ├── ieee.test.ts              IEEE + the multi-chapter continuity test
 │   │                             (the headline feature).
+│   ├── merge-adjacent.test.ts    Adjacent citation grouping (v0.2.0).
 │   ├── chicago-mla-vancouver-harvard.test.ts  Other formats.
 │   ├── edge-cases.test.ts        onMissing modes, custom registration,
 │   │                             passing a FormatStrategy object directly.
