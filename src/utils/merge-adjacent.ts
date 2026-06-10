@@ -56,8 +56,8 @@ function preserveTrailingWhitespace(match: string, replacement: string): string 
 }
 
 function mergeBracketRuns(text: string): string {
-  // Require 2+ adjacent tokens so a lone [1] before prose keeps its spacing.
-  const runRe = /(?:\[(\d+(?:,\s*\d+)*)\]\s*){2,}/g;
+  // Require 2+ adjacent tokens. Allow optional commas or whitespace between them.
+  const runRe = /(?:\[(\d+(?:,\s*\d+)*)\][\s,;]*){2,}/g;
   return text.replace(runRe, (match) => {
     const nums: number[] = [];
     for (const m of match.matchAll(/\[(\d+(?:,\s*\d+)*)\]/g)) {
@@ -68,7 +68,7 @@ function mergeBracketRuns(text: string): string {
 }
 
 function mergeParenthesisNumberRuns(text: string): string {
-  const runRe = /(?:\((\d+(?:,\s*\d+)*)\)\s*){2,}/g;
+  const runRe = /(?:\((\d+(?:,\s*\d+)*)\)[\s,;]*){2,}/g;
   return text.replace(runRe, (match) => {
     const nums: number[] = [];
     for (const m of match.matchAll(/\((\d+(?:,\s*\d+)*)\)/g)) {
@@ -84,10 +84,10 @@ function mergeParenthesisNumberRuns(text: string): string {
  */
 function mergeAuthorDateRuns(text: string): string {
   const citationGroup = String.raw`\([^()]*\d{4}[^()]*\)`;
-  const runRe = new RegExp(`(?:${citationGroup}\\s*){2,}`, 'g');
+  const runRe = new RegExp(`(?:${citationGroup}[\\s,;]*){2,}`, 'g');
   return text.replace(runRe, (match) => {
-    const groups = [...match.matchAll(new RegExp(citationGroup, 'g'))].map((m) => m[0]);
-    const inner = groups.map((g) => g.slice(1, -1)).join('; ');
+    const groupsList = [...match.matchAll(new RegExp(citationGroup, 'g'))].map((m) => m[0]);
+    const inner = [...new Set(groupsList.map((g: string) => g.slice(1, -1).trim()))].join('; ');
     return preserveTrailingWhitespace(match, `(${inner})`);
   });
 }

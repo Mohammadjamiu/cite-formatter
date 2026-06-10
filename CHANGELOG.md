@@ -6,8 +6,18 @@ project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ## [Unreleased]
 
+## [0.2.1] - 2026-06-10
+
+### Fixed
+- Fixed an issue where duplicate citations were not properly removed during merging in some author-date formats.
+
 ### Changed
-- README and docs updated for adjacent citation merging (`groupAdjacent`, `mergeAdjacentCitations`)
+- Adjacent citation merging now **preserves the original citation order** specified by the user, while still deduplicating repetitions.
+- Adjacent citation merging is now more robust: it handles optional commas and semicolons between tags (e.g., `[CITE:1], [CITE:2]` correctly merges).
+- Optimized `mergeAuthorDateRuns` logic for better performance.
+
+### Added
+- Specific tests for adjacent citation merging across various separators.
 
 ## [0.2.0] - 2026-06-09
 
