@@ -1,6 +1,6 @@
 {
   "name": "cite-formatter",
-  "version": "0.3.0",
+  "version": "0.3.1",
   "description": "Compile [CITE:id] placeholders to APA, IEEE, Chicago, MLA, Vancouver, or Harvard. Global numbering across calls. Zero dependencies.",
   "type": "module",
   "main": "./dist/index.cjs",
@@ -24,7 +24,7 @@
     }
   },
   "bin": {
-    "cite-formatter": "./bin/cli.js"
+    "cite-formatter": "bin/cli.js"
   },
   "files": [
     "dist",
@@ -63,7 +63,7 @@
   "author": "Mohammad-Jamiu Balogun <balogunmohammedjamiu@gmail.com>",
   "repository": {
     "type": "git",
-    "url": "https://github.com/Mohammadjamiu/cite-formatter.git"
+    "url": "git+https://github.com/Mohammadjamiu/cite-formatter.git"
   },
   "bugs": {
     "url": "https://github.com/Mohammadjamiu/cite-formatter/issues"

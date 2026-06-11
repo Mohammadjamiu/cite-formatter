@@ -37,7 +37,7 @@ function mlaAuthorList(citation: Citation): string {
 }
 
 function mlaSurnames(citation: Citation, ctx: InTextContext): string[] {
-  return ctx.surnames.length > 0 ? ctx.surnames : citation.authors.map(extractSurname);
+  return ctx.surnames.length > 0 ? ctx.surnames : (citation.authors ?? []).map(extractSurname);
 }
 
 function mlaAuthorPart(surnames: string[]): string {

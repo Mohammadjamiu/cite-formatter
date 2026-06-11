@@ -40,7 +40,7 @@ function harvardAuthorList(citation: Citation): string {
 }
 
 function harvardSurnames(citation: Citation, ctx: InTextContext): string[] {
-  return ctx.surnames.length > 0 ? ctx.surnames : citation.authors.map(extractSurname);
+  return ctx.surnames.length > 0 ? ctx.surnames : (citation.authors ?? []).map(extractSurname);
 }
 
 function harvardAuthorPart(surnames: string[]): string {

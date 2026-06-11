@@ -83,13 +83,29 @@ git push origin main --follow-tags
 
 ### 5. Publish to npm
 
+**From your laptop (PowerShell / macOS / Linux):** provenance is **not**
+available — npm needs an OIDC-capable CI provider (e.g. GitHub Actions).
+If you pass `--provenance` locally, you get:
+
+`Automatic provenance generation not supported for provider: null`
+
+Use:
+
+```bash
+npm publish --access public
+```
+
+**From CI (optional, for provenance):** in a workflow that has `id-token: write`
+and runs on a supported provider, you can use:
+
 ```bash
 npm publish --provenance --access public
 ```
 
-`--provenance` attaches the SLSA build provenance to the release.
-It links the npm package back to the exact git commit and CI run.
-Free for public packages, no extra setup.
+That attaches SLSA provenance linking the tarball to the git commit and CI run.
+
+After changing metadata, run `npm pkg fix` once so `package.json` matches what
+npm expects (repository URL form, `bin` paths).
 
 ### 6. Post-publish
 

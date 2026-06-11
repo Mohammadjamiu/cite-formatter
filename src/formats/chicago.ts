@@ -35,11 +35,11 @@ function chicagoRestNatural(citation: Citation): string {
   return (citation.authors ?? [])
     .slice(1)
     .map((a) => (isCommaForm(a) ? a.trim() : a.trim()))
-    .join(citation.authors.length === 2 ? ' and ' : ', and ');
+    .join((citation.authors?.length ?? 0) === 2 ? ' and ' : ', and ');
 }
 
 function chicagoSurnames(citation: Citation, ctx: InTextContext): string[] {
-  return ctx.surnames.length > 0 ? ctx.surnames : citation.authors.map(extractSurname);
+  return ctx.surnames.length > 0 ? ctx.surnames : (citation.authors ?? []).map(extractSurname);
 }
 
 function chicagoAuthorPart(surnames: string[]): string {

@@ -56,7 +56,7 @@ function apaAuthorList(citation: Citation, max: number = 20): string {
 }
 
 function apaSurnames(citation: Citation, ctx: InTextContext): string[] {
-  return ctx.surnames.length > 0 ? ctx.surnames : citation.authors.map(extractSurname);
+  return ctx.surnames.length > 0 ? ctx.surnames : (citation.authors ?? []).map(extractSurname);
 }
 
 /** Inner of a parenthetical APA citation, without the surrounding parens. */

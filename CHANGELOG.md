@@ -6,6 +6,15 @@ project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ## [Unreleased]
 
+## [0.3.1] - 2026-06-11
+
+### Fixed
+- No longer crashes with "Cannot read properties of undefined (reading 'map')"
+  when a citation is passed without an `authors` field (possible from plain-JS
+  callers or database-sourced data). The surname fallback in APA, Chicago,
+  Harvard, and MLA now treats missing `authors` as an empty list and renders
+  `Anonymous`, matching the existing behaviour for empty author arrays.
+
 ## [0.3.0] - 2026-06-11
 
 ### Added
