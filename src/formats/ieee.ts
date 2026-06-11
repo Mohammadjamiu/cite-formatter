@@ -1,7 +1,7 @@
 /**
  * IEEE Editorial Style Manual (numbered references).
  *
- * In-text:   [1], [2], [1, 2], [1]–[3]
+ * In-text:   [1], [2]; grouped → [1, 2] (3+ consecutive collapse to [1–3])
  * Reference: [1] A. B. Smith, "Title of paper," *Journal*, vol. X, no. Y, pp. 12–34, Year, doi: 10.x/y.
  *
  * - First author surname-first, rest natural order
@@ -21,9 +21,15 @@
  *   "[1] Smith, J. Q., \"A study,\" *Journal*, vol. 12, no. 3, pp. 34–56, 2020, doi: 10.1234/abc."
  */
 
-import type { Citation, FormatStrategy, InTextContext, ReferenceContext } from '../types.js';
+import type {
+  Citation,
+  FormatStrategy,
+  GroupItem,
+  InTextContext,
+  ReferenceContext,
+} from '../types.js';
 import { isCommaForm, toInitialsFirst } from '../utils/authors.js';
-import { doiUrl, effectiveYear, formatPageRange } from '../utils/placeholders.js';
+import { doiUrl, effectiveYear, formatNumberRanges, formatPageRange } from '../utils/placeholders.js';
 
 function ieeeAuthorList(citation: Citation): string {
   const authors = citation.authors ?? [];
@@ -60,6 +66,15 @@ function ieeeInText(_citation: Citation, ctx: InTextContext): string {
   return `[${ctx.number}]`;
 }
 
+/** Combine numbers into one bracket: `[1, 2]`, with 3+ consecutive collapsed to `[1–3]`. */
+function ieeeGroup(items: GroupItem[]): string {
+  const numbers = items
+    .map((it) => it.ctx.number)
+    .filter((n): n is number => n !== undefined);
+  if (numbers.length === 0) return '[?]';
+  return `[${formatNumberRanges(numbers)}]`;
+}
+
 function ieeeReference(citation: Citation, ctx: ReferenceContext): string {
   const year = effectiveYear(citation);
   const authors = ieeeAuthorList(citation);
@@ -92,5 +107,6 @@ export const ieeeStrategy: FormatStrategy = {
   label: 'IEEE',
   numbered: true,
   inText: ieeeInText,
+  groupInText: ieeeGroup,
   reference: ieeeReference,
 };

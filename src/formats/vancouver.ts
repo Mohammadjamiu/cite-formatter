@@ -1,7 +1,7 @@
 /**
  * Vancouver style (ICMJE Recommendations) — used in medicine & life sciences.
  *
- * In-text:   (1), (1, 2), (1–3)
+ * In-text:   (1); grouped → (1, 2) (3+ consecutive collapse to (1–3))
  * Reference: 1. Smith JQ, Jones JB. Title of paper. Journal. 2020;12(3):34-56. doi:10.1234/abc.
  *
  * - Authors in natural order, all up to 6; "et al." after 6
@@ -15,9 +15,15 @@
  *   "1. Smith, J. Q. A study. Journal. 2020;12(3):34–56. doi:10.1234/abc."
  */
 
-import type { Citation, FormatStrategy, InTextContext, ReferenceContext } from '../types.js';
+import type {
+  Citation,
+  FormatStrategy,
+  GroupItem,
+  InTextContext,
+  ReferenceContext,
+} from '../types.js';
 import { isCommaForm, toInitialsFirst } from '../utils/authors.js';
-import { doiUrl, effectiveYear, formatPageRange } from '../utils/placeholders.js';
+import { doiUrl, effectiveYear, formatNumberRanges, formatPageRange } from '../utils/placeholders.js';
 
 function vancouverAuthorList(citation: Citation): string {
   const authors = citation.authors ?? [];
@@ -36,6 +42,15 @@ function vancouverAuthorList(citation: Citation): string {
 function vancouverInText(_citation: Citation, ctx: InTextContext): string {
   if (ctx.number === undefined) return '(?)';
   return `(${ctx.number})`;
+}
+
+/** Combine numbers into one parenthesis: `(1, 2)`, with 3+ consecutive collapsed to `(1–3)`. */
+function vancouverGroup(items: GroupItem[]): string {
+  const numbers = items
+    .map((it) => it.ctx.number)
+    .filter((n): n is number => n !== undefined);
+  if (numbers.length === 0) return '(?)';
+  return `(${formatNumberRanges(numbers)})`;
 }
 
 function vancouverReference(citation: Citation, ctx: ReferenceContext): string {
@@ -72,5 +87,6 @@ export const vancouverStrategy: FormatStrategy = {
   label: 'Vancouver (ICMJE)',
   numbered: true,
   inText: vancouverInText,
+  groupInText: vancouverGroup,
   reference: vancouverReference,
 };

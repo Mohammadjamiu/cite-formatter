@@ -15,7 +15,13 @@
  *   "Smith, J. Q. 2020. \"A study.\" *Journal* 12 (3): 34–56. https://doi.org/10.1234/abc."
  */
 
-import type { Citation, FormatStrategy, InTextContext, ReferenceContext } from '../types.js';
+import type {
+  Citation,
+  FormatStrategy,
+  GroupItem,
+  InTextContext,
+  ReferenceContext,
+} from '../types.js';
 import { byFirstSurname, extractSurname, isCommaForm, toSurnameFirst } from '../utils/authors.js';
 import { effectiveYear, formatPageRange } from '../utils/placeholders.js';
 
@@ -32,17 +38,33 @@ function chicagoRestNatural(citation: Citation): string {
     .join(citation.authors.length === 2 ? ' and ' : ', and ');
 }
 
-function chicagoInText(citation: Citation, ctx: InTextContext): string {
-  const year = effectiveYear(citation);
-  const surnames = ctx.surnames.length > 0 ? ctx.surnames : citation.authors.map(extractSurname);
+function chicagoSurnames(citation: Citation, ctx: InTextContext): string[] {
+  return ctx.surnames.length > 0 ? ctx.surnames : citation.authors.map(extractSurname);
+}
+
+function chicagoAuthorPart(surnames: string[]): string {
+  if (surnames.length === 0) return 'Anonymous';
+  if (surnames.length === 1) return surnames[0] ?? '';
+  if (surnames.length === 2) return `${surnames[0]} and ${surnames[1]}`;
+  if (surnames.length === 3) return `${surnames[0]}, ${surnames[1]}, and ${surnames[2]}`;
+  return `${surnames[0]} et al.`;
+}
+
+/** Inner of a parenthetical Chicago citation, without the surrounding parens. */
+function chicagoParentheticalInner(citation: Citation, ctx: InTextContext): string {
+  const year = `${effectiveYear(citation)}${ctx.yearSuffix ?? ''}`;
   const pageSuffix = ctx.page ? `, ${ctx.page}` : '';
+  return `${chicagoAuthorPart(chicagoSurnames(citation, ctx))} ${year}${pageSuffix}`;
+}
 
-  if (surnames.length === 0) return `(Anonymous ${year})`;
+function chicagoInText(citation: Citation, ctx: InTextContext): string {
+  const year = `${effectiveYear(citation)}${ctx.yearSuffix ?? ''}`;
+  const surnames = chicagoSurnames(citation, ctx);
 
-  let authorPart: string;
   if (ctx.narrative) {
-    if (surnames.length === 1) {
-      authorPart = surnames[0] ?? '';
+    let authorPart: string;
+    if (surnames.length <= 1) {
+      authorPart = surnames[0] ?? 'Anonymous';
     } else if (surnames.length === 2) {
       authorPart = `${surnames[0]} and ${surnames[1]}`;
     } else {
@@ -51,20 +73,23 @@ function chicagoInText(citation: Citation, ctx: InTextContext): string {
     return `${authorPart} (${year})`;
   }
 
-  if (surnames.length <= 3) {
-    authorPart = surnames.length === 1
-      ? (surnames[0] ?? '')
-      : surnames.length === 2
-        ? `${surnames[0]} and ${surnames[1]}`
-        : `${surnames[0]}, ${surnames[1]}, and ${surnames[2]}`;
-  } else {
-    authorPart = `${surnames[0]} et al.`;
-  }
-  return `(${authorPart} ${year}${pageSuffix})`;
+  return `(${chicagoParentheticalInner(citation, ctx)})`;
 }
 
-function chicagoReference(citation: Citation, _ctx: ReferenceContext): string {
-  const year = effectiveYear(citation);
+function chicagoGroup(items: GroupItem[]): string {
+  const inner = items
+    .map((it) => ({
+      key: (chicagoSurnames(it.citation, it.ctx)[0] ?? '').toLowerCase(),
+      text: chicagoParentheticalInner(it.citation, it.ctx),
+    }))
+    .sort((a, b) => a.key.localeCompare(b.key))
+    .map((entry) => entry.text)
+    .join('; ');
+  return `(${inner})`;
+}
+
+function chicagoReference(citation: Citation, ctx: ReferenceContext): string {
+  const year = `${effectiveYear(citation)}${ctx.yearSuffix ?? ''}`;
   const first = chicagoFirstAuthorLastFirst(citation);
   const rest = chicagoRestNatural(citation);
   const authors = rest ? `${first}, and ${rest}` : first;
@@ -96,7 +121,9 @@ export const chicagoStrategy: FormatStrategy = {
   id: 'chicago',
   label: 'Chicago (Author-Date)',
   numbered: false,
+  disambiguateYears: true,
   sort: byFirstSurname,
   inText: chicagoInText,
+  groupInText: chicagoGroup,
   reference: chicagoReference,
 };

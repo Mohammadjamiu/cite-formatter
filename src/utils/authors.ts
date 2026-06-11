@@ -148,9 +148,13 @@ export function getSurnames(citation: Citation): string[] {
  * ```
  */
 export function byFirstSurname(a: Citation, b: Citation): number {
-  const aSurnames = getSurnames(a);
-  const bSurnames = getSurnames(b);
-  const aName = aSurnames[0] ?? '';
-  const bName = bSurnames[0] ?? '';
-  return aName.localeCompare(bName);
+  const aName = getSurnames(a)[0] ?? '';
+  const bName = getSurnames(b)[0] ?? '';
+  const bySurname = aName.localeCompare(bName);
+  if (bySurname !== 0) return bySurname;
+  // Tie-break so same-author entries are stable and align with year-suffix
+  // ordering (e.g. 2020a before 2020b): by year, then by title.
+  const byYear = (a.year ?? 0) - (b.year ?? 0);
+  if (byYear !== 0) return byYear;
+  return (a.title ?? '').localeCompare(b.title ?? '');
 }

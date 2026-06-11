@@ -86,6 +86,7 @@ export type {
   Citation,
   FormatId,
   FormatStrategy,
+  GroupItem,
   InTextContext,
   ReferenceContext,
   CompileOptions,

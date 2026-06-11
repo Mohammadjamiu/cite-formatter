@@ -67,9 +67,12 @@ If you're building an AI writing tool — essay generator, RAG chat, research as
 - **6 built-in formats**: APA 7, IEEE, Chicago (Author-Date), MLA 9, Vancouver, Harvard
 - **Adjacent citation merging** — `[CITE:a][CITE:b]` becomes `(A, 2020; B, 2021)` or `[1, 2]` automatically (v0.2.0+)
 - **Continuous numbering** for IEEE / Vancouver across chapters or sections via `numberMap`
+- **Grouped citations** — adjacent placeholders merge into one citation: `(Smith, 2020; Jones, 2021)`, `[1, 2]`, `[1–3]`
+- **Placeholder modifiers** — `[CITE:id|p=42]` for pages, `[CITE:id|narrative]` for `Smith (2020)` subject form
+- **Year disambiguation** — same author + year becomes `(Smith, 2020a)` / `(Smith, 2020b)` in APA/Chicago/Harvard
 - **Custom format registration** — add your own house style at runtime
 - **BibTeX export** — feed into pandoc / JabRef / Zotero
-- **Page-suffix support** — `(Smith, 2020, p. 42)` in APA/Chicago/Harvard
+- **Page-suffix support** — per-citation `[CITE:id|p=42]` or a global `page` option
 - **Missing-id diagnostics** — choose `keep`, `remove`, or `throw`
 - **Deterministic output** — same input + same options = same output
 - **Zero runtime dependencies** — pure TypeScript, no axios / no lodash / no nothing

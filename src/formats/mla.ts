@@ -12,7 +12,13 @@
  *   "Smith, J. Q. \"A study.\" *Journal*, vol. 12, no. 3, 2020, pp. 34–56."
  */
 
-import type { Citation, FormatStrategy, InTextContext, ReferenceContext } from '../types.js';
+import type {
+  Citation,
+  FormatStrategy,
+  GroupItem,
+  InTextContext,
+  ReferenceContext,
+} from '../types.js';
 import { byFirstSurname, extractSurname, isCommaForm, toSurnameFirst } from '../utils/authors.js';
 import { effectiveYear, formatPageRange } from '../utils/placeholders.js';
 
@@ -30,21 +36,44 @@ function mlaAuthorList(citation: Citation): string {
   return `${first}, et al.`;
 }
 
-function mlaInText(citation: Citation, ctx: InTextContext): string {
-  const surnames = ctx.surnames.length > 0 ? ctx.surnames : citation.authors.map(extractSurname);
-  if (surnames.length === 0) return '(Anonymous)';
+function mlaSurnames(citation: Citation, ctx: InTextContext): string[] {
+  return ctx.surnames.length > 0 ? ctx.surnames : citation.authors.map(extractSurname);
+}
 
-  let authorPart: string;
-  if (surnames.length === 1) {
-    authorPart = surnames[0] ?? '';
-  } else if (surnames.length === 2) {
-    authorPart = `${surnames[0]} and ${surnames[1]}`;
-  } else {
-    authorPart = `${surnames[0]} et al.`;
-  }
+function mlaAuthorPart(surnames: string[]): string {
+  if (surnames.length === 0) return 'Anonymous';
+  if (surnames.length === 1) return surnames[0] ?? '';
+  if (surnames.length === 2) return `${surnames[0]} and ${surnames[1]}`;
+  return `${surnames[0]} et al.`;
+}
 
+/** Inner of a parenthetical MLA citation, without the surrounding parens. */
+function mlaInner(citation: Citation, ctx: InTextContext): string {
+  const authorPart = mlaAuthorPart(mlaSurnames(citation, ctx));
   const pageSuffix = ctx.page ? ` ${ctx.page}` : '';
-  return `(${authorPart}${pageSuffix})`;
+  return `${authorPart}${pageSuffix}`;
+}
+
+function mlaInText(citation: Citation, ctx: InTextContext): string {
+  // Narrative: the author is named in prose, so only the page (if any)
+  // goes in parentheses — e.g. "Smith argues ... (12)".
+  if (ctx.narrative) {
+    const authorPart = mlaAuthorPart(mlaSurnames(citation, ctx));
+    return ctx.page ? `${authorPart} (${ctx.page})` : authorPart;
+  }
+  return `(${mlaInner(citation, ctx)})`;
+}
+
+function mlaGroup(items: GroupItem[]): string {
+  const inner = items
+    .map((it) => ({
+      key: (mlaSurnames(it.citation, it.ctx)[0] ?? '').toLowerCase(),
+      text: mlaInner(it.citation, it.ctx),
+    }))
+    .sort((a, b) => a.key.localeCompare(b.key))
+    .map((entry) => entry.text)
+    .join('; ');
+  return `(${inner})`;
 }
 
 function mlaReference(citation: Citation, _ctx: ReferenceContext): string {
@@ -80,5 +109,6 @@ export const mlaStrategy: FormatStrategy = {
   numbered: false,
   sort: byFirstSurname,
   inText: mlaInText,
+  groupInText: mlaGroup,
   reference: mlaReference,
 };

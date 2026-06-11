@@ -9,6 +9,7 @@
 
 ## Contents
 
+- [Placeholder syntax](#placeholder-syntax)
 - [APA 7th edition](#apa-7th-edition)
 - [IEEE](#ieee)
 - [Chicago Author-Date 17th](#chicago-author-date-17th)
@@ -17,6 +18,49 @@
 - [Harvard (Cite Them Right 12th)](#harvard-cite-them-right-12th)
 - [Which format to use](#which-format-to-use)
 - [Extending a format](#extending-a-format)
+
+---
+
+## Placeholder syntax
+
+The base placeholder is `[CITE:id]`, where `id` matches the `id` (or, if
+absent, the `title`) of a citation in your pool. Ids may contain letters,
+digits, `.`, `_`, `-`, and `:` (so namespaced ids like
+`[CITE:arxiv:2401.01234]` work).
+
+### Modifiers
+
+Append `|`-delimited modifiers after the id:
+
+| Syntax | Effect | Example output (APA) |
+|--------|--------|----------------------|
+| `[CITE:id]` | Parenthetical (default) | `(Smith, 2020)` |
+| `[CITE:id\|p=42]` | Add a page (also `page=`, `pp=`, `p:`) | `(Smith, 2020, p. 42)` |
+| `[CITE:id\|narrative]` | Narrative / subject position (also `\|n`) | `Smith (2020)` |
+| `[CITE:id\|narrative\|p=42]` | Both | `Smith (2020, p. 42)` |
+
+A per-citation `p=` overrides the global `page` option, and different
+placeholders for the same source may carry different pages. Numbered formats
+(IEEE, Vancouver) ignore both `page` and `narrative` — they always render the
+bracketed number.
+
+### Grouping
+
+Two or more placeholders that are **adjacent** — separated only by spaces and
+an optional `;`/`,` — are merged into one in-text citation. Placeholders
+separated by words (`[CITE:a] and [CITE:b]`) or a line break stay separate.
+
+| Format | Grouped output |
+|--------|----------------|
+| APA / Chicago / Harvard / MLA | `(Smith, 2020; Jones, 2021)` (alphabetised by surname) |
+| IEEE | `[1, 2]` (3+ consecutive → `[1–3]`) |
+| Vancouver | `(1, 2)` (3+ consecutive → `(1–3)`) |
+
+### Same-author, same-year disambiguation
+
+When two distinct cited works share a first-author surname and year, APA,
+Chicago, and Harvard append letter suffixes (`2020a`, `2020b`) — both in-text
+and in the reference list. Suffixes are assigned in title order.
 
 ---
 
@@ -36,8 +80,18 @@ Association, 7th edition (2019/2020).
 | 2       | `(Smith & Jones, 2020)` | `Smith and Jones (2020)` |
 | 3+      | `(Smith et al., 2020)` | `Smith et al. (2020)` |
 
-With page number: `(Smith, 2020, p. 42)`. Pass `page: '42'` in
-`CompileOptions`.
+With page number: `(Smith, 2020, p. 42)`. Use the per-citation modifier
+`[CITE:smith2020|p=42]`, or pass `page: '42'` in `CompileOptions` to apply one
+page to the whole call.
+
+Narrative form: `[CITE:smith2020|narrative]` → `Smith (2020)`. See
+[Placeholder syntax](#placeholder-syntax).
+
+**Grouped citations:** adjacent placeholders are merged into a single
+parenthetical, alphabetised by first-author surname:
+`[CITE:jones][CITE:smith]` → `(Jones, 2021; Smith, 2020)`. This also applies to
+Chicago, Harvard, and MLA (each with its own punctuation). Placeholders
+separated by words (`[CITE:a] and [CITE:b]`) stay separate.
 
 **APA 7 changed the et al. rule from 6+ to 3+.** This is one of
 the most-violated rules in academic writing; the package gets it
@@ -102,8 +156,13 @@ Smith, J. Q. (2020). A study of things. *Journal of Studies*, *12*(3), 34–56. 
 | Position | Output |
 |----------|--------|
 | Single | `[1]` |
-| Multiple, same place | `[1]`, `[1, 2]`, `[1]–[3]` |
+| Multiple, same place | `[1, 2]` (3+ consecutive → `[1–3]`) |
 | Already cited | Same number as before |
+
+Multiple sources are grouped when their `[CITE:id]` placeholders are adjacent
+(separated only by spaces and an optional `;`/`,`). Numbers are sorted ascending
+and de-duplicated; runs of 3+ consecutive numbers collapse to an en-dash range,
+e.g. `[CITE:a][CITE:b][CITE:c]` → `[1–3]`, and `[1–3, 5, 6]` for mixed runs.
 
 The number is the order in which the citation *first* appears in
 the content. Re-citing the same source reuses the number.
@@ -271,7 +330,9 @@ Smith, J. Q. "A study of things." *Journal of Studies*, vol. 12, no. 3, 2020, pp
 | Position | Output |
 |----------|--------|
 | Single | `(1)` |
-| Multiple, same place | `(1)`, `(1, 2)`, `(1–3)` |
+| Multiple, same place | `(1, 2)` (3+ consecutive → `(1–3)`) |
+
+Adjacent placeholders are grouped, the same way as IEEE (see above).
 
 ### Reference list
 

@@ -23,7 +23,13 @@
  *   "Smith, J. Q. (2020). A study of things. *Journal of Studies*, *12*(3), 34–56. https://doi.org/10.1234/abc"
  */
 
-import type { Citation, FormatStrategy, InTextContext, ReferenceContext } from '../types.js';
+import type {
+  Citation,
+  FormatStrategy,
+  GroupItem,
+  InTextContext,
+  ReferenceContext,
+} from '../types.js';
 import { byFirstSurname, extractSurname, isCommaForm, toInitialsFirst } from '../utils/authors.js';
 import { doiUrl, effectiveYear, formatPageRange } from '../utils/placeholders.js';
 
@@ -49,17 +55,37 @@ function apaAuthorList(citation: Citation, max: number = 20): string {
   );
 }
 
-function apaInText(citation: Citation, ctx: InTextContext): string {
-  const year = effectiveYear(citation);
-  const pageSuffix = ctx.page ? `, p. ${ctx.page}` : '';
-  const surnames = ctx.surnames.length > 0 ? ctx.surnames : citation.authors.map(extractSurname);
+function apaSurnames(citation: Citation, ctx: InTextContext): string[] {
+  return ctx.surnames.length > 0 ? ctx.surnames : citation.authors.map(extractSurname);
+}
 
-  if (surnames.length === 0) return `(Anonymous, ${year})`;
+/** Inner of a parenthetical APA citation, without the surrounding parens. */
+function apaParentheticalInner(citation: Citation, ctx: InTextContext): string {
+  const year = `${effectiveYear(citation)}${ctx.yearSuffix ?? ''}`;
+  const pageSuffix = ctx.page ? `, p. ${ctx.page}` : '';
+  const surnames = apaSurnames(citation, ctx);
 
   let authorPart: string;
+  if (surnames.length === 0) {
+    authorPart = 'Anonymous';
+  } else if (surnames.length === 1) {
+    authorPart = surnames[0] ?? '';
+  } else if (surnames.length === 2) {
+    authorPart = `${surnames[0]} & ${surnames[1]}`;
+  } else {
+    authorPart = `${surnames[0]} et al.`;
+  }
+  return `${authorPart}, ${year}${pageSuffix}`;
+}
+
+function apaInText(citation: Citation, ctx: InTextContext): string {
+  const year = `${effectiveYear(citation)}${ctx.yearSuffix ?? ''}`;
+  const surnames = apaSurnames(citation, ctx);
+
   if (ctx.narrative) {
-    if (surnames.length === 1) {
-      authorPart = surnames[0] ?? '';
+    let authorPart: string;
+    if (surnames.length <= 1) {
+      authorPart = surnames[0] ?? 'Anonymous';
     } else if (surnames.length === 2) {
       authorPart = `${surnames[0]} and ${surnames[1]}`;
     } else {
@@ -68,19 +94,24 @@ function apaInText(citation: Citation, ctx: InTextContext): string {
     return `${authorPart} (${year})`;
   }
 
-  // Parenthetical
-  if (surnames.length === 1) {
-    authorPart = surnames[0] ?? '';
-  } else if (surnames.length === 2) {
-    authorPart = `${surnames[0]} & ${surnames[1]}`;
-  } else {
-    authorPart = `${surnames[0]} et al.`;
-  }
-  return `(${authorPart}, ${year}${pageSuffix})`;
+  return `(${apaParentheticalInner(citation, ctx)})`;
 }
 
-function apaReference(citation: Citation, _ctx: ReferenceContext): string {
-  const year = effectiveYear(citation);
+/** Multiple sources in one parenthetical, alphabetised by first surname and `;`-joined. */
+function apaGroup(items: GroupItem[]): string {
+  const inner = items
+    .map((it) => ({
+      key: (apaSurnames(it.citation, it.ctx)[0] ?? '').toLowerCase(),
+      text: apaParentheticalInner(it.citation, it.ctx),
+    }))
+    .sort((a, b) => a.key.localeCompare(b.key))
+    .map((entry) => entry.text)
+    .join('; ');
+  return `(${inner})`;
+}
+
+function apaReference(citation: Citation, ctx: ReferenceContext): string {
+  const year = `${effectiveYear(citation)}${ctx.yearSuffix ?? ''}`;
   const authors = apaAuthorList(citation);
   const journal = citation.journal?.trim() ?? '';
   const volume = citation.volume?.trim() ?? '';
@@ -112,7 +143,9 @@ export const apaStrategy: FormatStrategy = {
   id: 'apa',
   label: 'APA 7th edition',
   numbered: false,
+  disambiguateYears: true,
   sort: byFirstSurname,
   inText: apaInText,
+  groupInText: apaGroup,
   reference: apaReference,
 };

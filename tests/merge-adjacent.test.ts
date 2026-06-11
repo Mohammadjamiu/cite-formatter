@@ -63,7 +63,7 @@ describe('compileCitations — adjacent citation grouping (default on)', () => {
       format: 'apa',
     });
     expect(r.content).toContain('(Balogun, 2026; Fu, 2023)');
-    expect(r.content).toContain('(Krasniqi & Bejtullahu, 2018; Irvan, 2024)');
+    expect(r.content).toContain('(Irvan, 2024; Krasniqi & Bejtullahu, 2018)');
   });
 
   it('merges adjacent IEEE citations', () => {
@@ -93,7 +93,7 @@ describe('compileCitations — adjacent citation grouping (default on)', () => {
       citations: [c, d],
       format: 'harvard',
     });
-    expect(r.content).toBe('Risks (Krasniqi and Bejtullahu, 2018; Irvan, 2024) are noted.');
+    expect(r.content).toBe('Risks (Irvan, 2024; Krasniqi and Bejtullahu, 2018) are noted.');
   });
 
   it('does not merge citations separated by other text', () => {

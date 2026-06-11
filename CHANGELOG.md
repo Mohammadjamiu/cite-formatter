@@ -6,6 +6,42 @@ project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ## [Unreleased]
 
+## [0.3.0] - 2026-06-11
+
+### Added
+- **Placeholder modifiers.** `[CITE:id]` now accepts `|`-delimited options:
+  - `[CITE:id|p=42]` — per-citation page (`page=`, `pp=`, `p:` also work),
+    overriding the global `page` option. Different placeholders for the same
+    source can carry different pages.
+  - `[CITE:id|narrative]` (or `|n`) — narrative form, e.g. `Smith (2020)` /
+    `Smith and Jones (2020)`. MLA renders `Smith (12)`; numbered formats keep
+    `[1]`.
+  - Combinable: `[CITE:id|narrative|p=42]`.
+- **Same-author / same-year disambiguation.** APA, Chicago, and Harvard add
+  letter suffixes (`2020a`, `2020b`) in-text *and* in the reference list when
+  two distinct cited works share a first author and year. Suffixes are assigned
+  by title order.
+- `parseCiteModifiers()` helper and `CiteModifiers` type.
+- `disambiguateYears` flag on `FormatStrategy`; `yearSuffix` on
+  `InTextContext` / `ReferenceContext`.
+- **Grouped in-text citations** are now produced inline during compilation via a
+  `groupInText` strategy method (still gated by the `groupAdjacent` option,
+  default `true`):
+  - APA / Chicago / Harvard / MLA: `(Smith, 2020; Jones, 2021)` (alphabetised)
+  - IEEE: `[1, 2]`, with 3+ consecutive numbers collapsed to `[1–3]`
+  - Vancouver: `(1, 2)` / `(1–3)`
+  Placeholders separated by words (`[CITE:a] and [CITE:b]`) or a line break are
+  left as separate citations. A group containing an unknown id falls back to
+  per-placeholder rendering, preserving `onMissing` behaviour.
+- `groupInText` optional method on `FormatStrategy` and a `GroupItem` type, so
+  custom formats can define their own grouping.
+- `formatNumberRanges()` utility for numbered styles.
+
+### Changed
+- Adjacent-citation merging is now performed during the compile pass (via
+  `groupInText`) rather than as a separate post-processing step. The standalone
+  `mergeAdjacentCitations()` export is retained for backward compatibility.
+
 ## [0.2.1] - 2026-06-10
 
 ### Fixed
